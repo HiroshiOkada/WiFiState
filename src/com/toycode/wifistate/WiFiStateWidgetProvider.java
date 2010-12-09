@@ -1,3 +1,28 @@
+/**
+ * Wi-Fi state widget
+ *
+ * Copyright (c) 2010 Hiroshi Okada <okadahiroshi@miobox.jp>
+ * 
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ * 
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ * 
+ *     1. The origin of this software must not be misrepresented; you must not
+ *     claim that you wrote the original software. If you use this software
+ *     in a product, an acknowledgment in the product documentation would be
+ *     appreciated but is not required.
+ * 
+ *     2. Altered source versions must be plainly marked as such, and must not be
+ *     misrepresented as being the original software.
+ * 
+ *     3. This notice may not be removed or altered from any source
+ *     distribution.
+ */
+
 package com.toycode.wifistate;
 
 import java.net.InetAddress;
@@ -5,6 +30,8 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Collections;
 import java.util.Enumeration;
+import android.app.PendingIntent;
+import android.app.Service;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
@@ -14,128 +41,152 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.Bundle;
+import android.os.IBinder;
+import android.provider.Settings;
 import android.text.format.Formatter;
-import android.util.Log;
 import android.widget.RemoteViews;
 
 public class WiFiStateWidgetProvider extends AppWidgetProvider {
 
 	/**
-	 * android.appwidget.action.APPWIDGET_UPDATE で呼び出される
-	 * AppWidgetProvider では最低このメソッドを記述しないといけない
+	 * Response to "android.appwidget.action.APPWIDGET_UPDATE"
+	 * In this widget, all updates are performed in the service.
 	 */
 	@Override
 	public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-		Log.d("WiFiStateWidgetProvider:onUpdate","A");
-		for( int appWidgetId : appWidgetIds ){
-			Log.d("WiFiStateWidgetProvider:onUpdate","appWidgetId=" + appWidgetId);
-			RemoteViews remoteViews 
-				= new RemoteViews( context.getPackageName(), R.layout.state_widget);
-			remoteViews.setTextViewText(R.id.InfoTextView, getNetInfoText(context));
-			appWidgetManager.updateAppWidget( appWidgetId, remoteViews);
-		}
-		Log.d("WiFiStateWidgetProvider:onUpdate","B");
+		context.startService( new Intent( context, UpdateService.class));
 	}
 
 	/**
-	 * ブロードキャストを受信したときに呼ばれる
-	 * 今回は NETWORK_STATE_CHANGED_ACTION CONNECTIVITY_ACTION に
-	 * 対応して文字列を設定している。
+	 * When the widget is deleted, the service also be removed.
+	 */
+	@Override
+	public void onDisabled(Context context) {
+		context.stopService( new Intent( context, UpdateService.class));		
+		super.onDisabled( context);
+	}
+
+	/**
+	 * In addition to the regular update, this widget 
+	 * is respond to NETWORK_STATE_CHANGED_ACTION & CONNECTIVITY_ACTION.
 	 */
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		Log.d("WiFiStateWidgetProvider:onReceive:", intent.toString());
 		String action = intent.getAction();
 		if( action.equals(WifiManager.NETWORK_STATE_CHANGED_ACTION) ||
-				action.equals(ConnectivityManager.CONNECTIVITY_ACTION)){
-			RemoteViews remoteViews 
-				= new RemoteViews( context.getPackageName(), R.layout.state_widget);
-			remoteViews.setTextViewText(R.id.InfoTextView, getNetInfoText(context));
-			ComponentName thisWidget 
-				= new ComponentName(context, WiFiStateWidgetProvider.class);
-			AppWidgetManager.getInstance(context.getApplicationContext()).updateAppWidget(thisWidget, remoteViews);
-				Log.d("WiFiStateWidgetProvider:onReceive:", thisWidget.toShortString());
-				
+					action.equals(ConnectivityManager.CONNECTIVITY_ACTION)){
+			
+			context.startService( new Intent( context, UpdateService.class));
 		}else{
 			super.onReceive( context, intent);
 		}
 	}
 	
 	/**
-	 * モバイル(電話回線) ネットワークを表す文字列を返す
+	 * The services to update the infomation.
 	 */
-	private String getMbileNetInfoText()
-	{
-		return "[Mobile]\n" + getInetAddressText();
-	}
+	public static class UpdateService extends Service {
 	
-	/**
-	 * Wifi ネットワークの情報を表す文字列を返す
-	 */
-	private String getWifiNetInfoText(Context context)
-	{
-		WifiManager wifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
-		if( wifiManager.isWifiEnabled()){
-			WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-			return wifiInfo.getSSID() + "\n" 
-							+  Formatter.formatIpAddress(wifiInfo.getIpAddress());
-		}else{
-			return "WiFi\nDisabled";
-		}
-	}
-	
-	/**
-	 * それ以外のネットワークの情報を表す文字列を返す
-	 */
-	private String getOtherNetInfoText()
-	{
-		return "[Other]\n" + getInetAddressText();
-	}
-	
-	/**
-	 * アクティブなネットワークの情報を表す文字列を返す
-	 */
-	private String getNetInfoText(Context context){
-		ConnectivityManager cm 
-			= (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo info = cm.getActiveNetworkInfo();
-		if( info == null){
-			Log.d("WiFiStateWidgetProvider:getNetInfoText","No Network");
-			return "No Network";		
-		}
-		String ret = "";
-		switch( info.getType()){
-		case ConnectivityManager.TYPE_MOBILE:
-			ret = getMbileNetInfoText();
-			break;
-		case ConnectivityManager.TYPE_WIFI:
-			ret = getWifiNetInfoText(context);
-			break;
-		default:
-			ret = getOtherNetInfoText();
-			break;
-		}
-		Log.d("WiFiStateWidgetProvider:getNetInfoText",ret);
-		return ret;
-	}
+		@Override
+		public void onStart(Intent intent, int startId) {
+			RemoteViews updateViews = new RemoteViews( this.getPackageName(), R.layout.state_widget);
+			updateViews.setTextViewText(R.id.InfoTextView, getNetInfoText(this));
 
-	/**
-	 * localhost 以外の最初に見つかったIPアドレスを文字列にして返す
-	 */
-	private String getInetAddressText() {
-	    try {
-	    	Enumeration<NetworkInterface> netifs = NetworkInterface.getNetworkInterfaces();
-	        for( NetworkInterface netif : Collections.list(netifs)){
-	        	Enumeration<InetAddress> iaddresses = netif.getInetAddresses();
-	        	for( InetAddress iaddress : Collections.list(iaddresses)){
-	        		if( iaddress.isLoopbackAddress() == false){
-	        			return iaddress.getHostAddress();
-	        		}
-	        	}	        	
-	        }
-	    } catch (SocketException ex) {
-	    }
-	    return "";
+			// startActivity(new Intent(Settings.ACTION_WIRELESS_SETTINGS)); 
+			Intent settingIntent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+			PendingIntent pendingIntent = PendingIntent.getActivity( this, 0, settingIntent, 0);
+			updateViews.setOnClickPendingIntent(R.id.InfoTextView, pendingIntent);	
+			ComponentName thisName = new ComponentName(this, WiFiStateWidgetProvider.class);
+			AppWidgetManager.getInstance(this).updateAppWidget( thisName, updateViews);
+			super.onStart(intent, startId);
+		}
+
+		@Override
+		public IBinder onBind(Intent arg0) {
+			return null;
+		}
+
+		/**
+		 * Retrun a string that represent first IP address except localhost.
+		 */
+		private String getInetAddressText() {
+		    try {
+		    	Enumeration<NetworkInterface> netifs = NetworkInterface.getNetworkInterfaces();
+		        for( NetworkInterface netif : Collections.list(netifs)){
+		        	Enumeration<InetAddress> iaddresses = netif.getInetAddresses();
+		        	for( InetAddress iaddress : Collections.list(iaddresses)){
+		        		if( iaddress.isLoopbackAddress() == false){
+		        			return iaddress.getHostAddress();
+		        		}
+		        	}	        	
+		        }
+		    } catch (SocketException ex) {
+		    }
+		    return "";
+		}
+		
+		/**
+		 * [Mobile] and ip address.
+		 */
+		private String getMbileNetInfoText()
+		{
+			return "[Mobile]\n" + getInetAddressText();
+		}
+		
+		/**
+		 * Wi-Fi network ssid and ip address.
+		 */
+		private String getWifiNetInfoText(Context context)
+		{
+			final int DIVIDE_LENGTH = 10;
+			WifiManager wifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
+			if( wifiManager.isWifiEnabled()){
+				WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+				String ssid = wifiInfo.getSSID();
+				if( ssid.length() > DIVIDE_LENGTH){
+					String head = ssid.substring( 0, DIVIDE_LENGTH);
+					String tail = ssid.substring( DIVIDE_LENGTH, ssid.length());
+					ssid = head + "\n" + tail;
+ 				}
+				return ssid + "\n" +  Formatter.formatIpAddress(wifiInfo.getIpAddress());
+			}else{
+				return "WiFi\nDisabled";
+			}
+		}
+		
+		/**
+		 * [Other] and IP address.
+		 */
+		private String getOtherNetInfoText()
+		{
+			return "[Other]\n" + getInetAddressText();
+		}
+		
+		/**
+		 * return active network infomation.
+		 */
+		private String getNetInfoText(Context context){
+					
+			ConnectivityManager cm 
+				= (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+			NetworkInfo info = cm.getActiveNetworkInfo();
+			if( info == null){
+				return "No Network";		
+			}
+			String ret = "";
+			switch( info.getType()){
+			case ConnectivityManager.TYPE_MOBILE:
+				ret = getMbileNetInfoText();
+				break;
+			case ConnectivityManager.TYPE_WIFI:
+				ret = getWifiNetInfoText(context);
+				break;
+			default:
+				ret = getOtherNetInfoText();
+				break;
+			}
+			return ret;
+		}
+		
 	}
 }
