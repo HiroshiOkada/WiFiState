@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      package="com.toycode.wifistate"
+      android:versionCode="1"
+      android:versionName="1.0">
+    <application android:icon="@drawable/icon" android:label="@string/app_name">
+	    <receiver android:name="WiFiStateWidgetProvider"
+	              android:icon="@drawable/icon"
+	              android:label="@string/app_name">
+	    	<intent-filter>
+	    		<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+	    		<action android:name="android.net.wifi.STATE_CHANGE" />
+	    		<action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+			</intent-filter>
+			<meta-data android:name="android.appwidget.provider"
+						android:resource="@xml/state_provider">
+			</meta-data>
+		</receiver>
+	</application>
+    <uses-sdk android:minSdkVersion="4" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"></uses-permission>
+    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+ </manifest> 
