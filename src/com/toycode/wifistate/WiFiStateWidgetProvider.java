@@ -95,12 +95,16 @@ public class WiFiStateWidgetProvider extends AppWidgetProvider {
 			// startActivity(new Intent(Settings.ACTION_WIRELESS_SETTINGS)); 
 			Intent settingIntent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
 			PendingIntent pendingIntent = PendingIntent.getActivity( this, 0, settingIntent, 0);
-			updateViews.setOnClickPendingIntent(R.id.InfoTextView, pendingIntent);	
-			ComponentName thisName = new ComponentName(this, WiFiStateWidgetProvider.class);
-			AppWidgetManager.getInstance(this).updateAppWidget( thisName, updateViews);
+			updateViews.setOnClickPendingIntent(R.id.InfoTextView, pendingIntent);				
+			AppWidgetManager.getInstance(this).updateAppWidget( getThisName(), updateViews);
 			super.onStart(intent, startId);
 		}
-
+		
+		public ComponentName getThisName(){
+			return new ComponentName(this, WiFiStateWidgetProvider.class);
+		}
+		
+		
 		@Override
 		public IBinder onBind(Intent arg0) {
 			return null;
