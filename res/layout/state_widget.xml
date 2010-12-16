@@ -12,7 +12,7 @@
  	android:gravity="center_vertical|center_horizontal"
     android:textColor="@android:color/black"
     android:textStyle="bold"
-    android:textSize="6sp"
+    android:textSize="13sp"
     android:text="-"
     android:background="#00000000"
     />
