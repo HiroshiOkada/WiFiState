@@ -32,7 +32,12 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 
-public class WiFiStateWidgetProvider extends AppWidgetProvider {
+public abstract class WiFiStateWidgetProvider extends AppWidgetProvider {
+
+	/**
+	 * @return new Intent( context, UpdateService.class)
+	 */
+	protected abstract Intent getServiceIntent(Context context);
 
 	/**
 	 * Response to "android.appwidget.action.APPWIDGET_UPDATE"
@@ -40,7 +45,7 @@ public class WiFiStateWidgetProvider extends AppWidgetProvider {
 	 */
 	@Override
 	public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-		context.startService( new Intent( context, UpdateService.class));
+		context.startService( getServiceIntent(context));
 	}
 
 	/**
@@ -48,7 +53,7 @@ public class WiFiStateWidgetProvider extends AppWidgetProvider {
 	 */
 	@Override
 	public void onDisabled(Context context) {
-		context.stopService( new Intent( context, UpdateService.class));		
+		context.stopService( getServiceIntent(context));		
 		super.onDisabled( context);
 	}
 
@@ -62,7 +67,7 @@ public class WiFiStateWidgetProvider extends AppWidgetProvider {
 		if( action.equals(WifiManager.NETWORK_STATE_CHANGED_ACTION) ||
 					action.equals(ConnectivityManager.CONNECTIVITY_ACTION)){
 			
-			context.startService( new Intent( context, UpdateService.class));
+			context.startService( getServiceIntent(context));
 		}else{
 			super.onReceive( context, intent);
 		}

@@ -45,113 +45,122 @@ import android.provider.Settings;
 import android.text.format.Formatter;
 import android.widget.RemoteViews;
 
-	
+/**
+ * The services to update the infomation.
+ */
+public abstract class UpdateService extends Service {
 	/**
-	 * The services to update the infomation.
+	 * @return R.id.Button*
 	 */
-	public class UpdateService extends Service {
-		int BUTTON_ID = R.id.Button;
+	protected abstract int getButtonID();
+
+	/**
+	 * @return R.layout.state_widget*
+	 */
+	protected abstract int getLayoutID();
+
+	/**
+	 * @return new ComponentName(this, WiFiStateWidgetProvider*.class);
+	 */
+	protected abstract ComponentName getComponentName();
 	
-		@Override
-		public void onStart(Intent intent, int startId) {
-			RemoteViews updateViews = new RemoteViews( this.getPackageName(), R.layout.state_widget);
-			updateViews.setTextViewText( BUTTON_ID, getNetInfoText(this));
+	@Override
+	public void onStart(Intent intent, int startId) {
+		RemoteViews updateViews = new RemoteViews(this.getPackageName(), getLayoutID());
+		updateViews.setTextViewText(getButtonID(), getNetInfoText(this));
 
-			Intent settingIntent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
-			PendingIntent pendingIntent = PendingIntent.getActivity( this, 0, settingIntent, 0);
-			updateViews.setOnClickPendingIntent( BUTTON_ID, pendingIntent);				
-			AppWidgetManager.getInstance(this).updateAppWidget( getThisName(), updateViews);
-			super.onStart(intent, startId);
-		}
-		
-		public ComponentName getThisName(){
-			return new ComponentName(this, WiFiStateWidgetProvider.class);
-		}
-		
-		
-		@Override
-		public IBinder onBind(Intent arg0) {
-			return null;
-		}
-
-		/**
-		 * Retrun a string that represent first IP address except localhost.
-		 */
-		private String getInetAddressText() {
-		    try {
-		    	Enumeration<NetworkInterface> netifs = NetworkInterface.getNetworkInterfaces();
-		        for( NetworkInterface netif : Collections.list(netifs)){
-		        	Enumeration<InetAddress> iaddresses = netif.getInetAddresses();
-		        	for( InetAddress iaddress : Collections.list(iaddresses)){
-		        		if( iaddress.isLoopbackAddress() == false){
-		        			return iaddress.getHostAddress();
-		        		}
-		        	}	        	
-		        }
-		    } catch (SocketException ex) {
-		    }
-		    return "";
-		}
-		
-		/**
-		 * [Mobile] and ip address.
-		 */
-		private String getMbileNetInfoText(NetworkInfo info)
-		{
-			if( info.isRoaming()){
-				return "[Roming]\n" + getInetAddressText();
-			}else{
-				return "[Mobile]\n" + getInetAddressText();
-			}
-		}
-		
-		/**
-		 * Wi-Fi network ssid and ip address.
-		 */
-		private String getWifiNetInfoText(Context context)
-		{
-			WifiManager wifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
-			if( wifiManager.isWifiEnabled()){
-				WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-				String ssid = wifiInfo.getSSID();
-				return ssid + "\n" +  Formatter.formatIpAddress(wifiInfo.getIpAddress());
-			}else{
-				return "WiFi\nDisabled";
-			}
-		}
-		
-		/**
-		 * [Other] and IP address.
-		 */
-		private String getOtherNetInfoText()
-		{
-			return "[Other]\n" + getInetAddressText();
-		}
-		
-		/**
-		 * return active network infomation.
-		 */
-		private String getNetInfoText(Context context){
-					
-			ConnectivityManager cm 
-				= (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
-			NetworkInfo info = cm.getActiveNetworkInfo();
-			if( info == null){
-				return "No Network";		
-			}
-			String ret = "";
-			switch( info.getType()){
-			case ConnectivityManager.TYPE_MOBILE:
-				ret = getMbileNetInfoText(info);
-				break;
-			case ConnectivityManager.TYPE_WIFI:
-				ret = getWifiNetInfoText(context);
-				break;
-			default:
-				ret = getOtherNetInfoText();
-				break;
-			}
-			return ret;
-		}
-		
+		Intent settingIntent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+		PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
+				settingIntent, 0);
+		updateViews.setOnClickPendingIntent(getButtonID(), pendingIntent);
+		AppWidgetManager.getInstance(this).updateAppWidget(getComponentName(),
+				updateViews);
+		super.onStart(intent, startId);
 	}
+
+	@Override
+	public IBinder onBind(Intent arg0) {
+		return null;
+	}
+
+	/**
+	 * Retrun a string that represent first IP address except localhost.
+	 */
+	private String getInetAddressText() {
+		try {
+			Enumeration<NetworkInterface> netifs = NetworkInterface
+					.getNetworkInterfaces();
+			for (NetworkInterface netif : Collections.list(netifs)) {
+				Enumeration<InetAddress> iaddresses = netif.getInetAddresses();
+				for (InetAddress iaddress : Collections.list(iaddresses)) {
+					if (iaddress.isLoopbackAddress() == false) {
+						return iaddress.getHostAddress();
+					}
+				}
+			}
+		} catch (SocketException ex) {
+		}
+		return "";
+	}
+
+	/**
+	 * [Mobile] and ip address.
+	 */
+	private String getMbileNetInfoText(NetworkInfo info) {
+		if (info.isRoaming()) {
+			return "[Roming]\n" + getInetAddressText();
+		} else {
+			return "[Mobile]\n" + getInetAddressText();
+		}
+	}
+
+	/**
+	 * Wi-Fi network ssid and ip address.
+	 */
+	private String getWifiNetInfoText(Context context) {
+		WifiManager wifiManager = (WifiManager) context
+				.getSystemService(Context.WIFI_SERVICE);
+		if (wifiManager.isWifiEnabled()) {
+			WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+			String ssid = wifiInfo.getSSID();
+			return ssid + "\n"
+					+ Formatter.formatIpAddress(wifiInfo.getIpAddress());
+		} else {
+			return "WiFi\nDisabled";
+		}
+	}
+
+	/**
+	 * [Other] and IP address.
+	 */
+	private String getOtherNetInfoText() {
+		return "[Other]\n" + getInetAddressText();
+	}
+
+	/**
+	 * return active network infomation.
+	 */
+	private String getNetInfoText(Context context) {
+
+		ConnectivityManager cm = (ConnectivityManager) context
+				.getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo info = cm.getActiveNetworkInfo();
+		if (info == null) {
+			return "No Network";
+		}
+		String ret = "";
+		switch (info.getType()) {
+		case ConnectivityManager.TYPE_MOBILE:
+			ret = getMbileNetInfoText(info);
+			break;
+		case ConnectivityManager.TYPE_WIFI:
+			ret = getWifiNetInfoText(context);
+			break;
+		default:
+			ret = getOtherNetInfoText();
+			break;
+		}
+		return ret;
+	}
+}
+

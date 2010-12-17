@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
-    android:layout_width="80dp"
+    android:layout_width="160dp"
     android:layout_height="100dp"
-    android:background="@drawable/background1x1"
+    android:background="@drawable/background2x1"
     >
 <Button  
-	android:id="@+id/Button"
+	android:id="@+id/Button2x1l"
     android:layout_width="fill_parent" 
     android:layout_height="fill_parent" 
  	android:gravity="center_vertical|center_horizontal"
     android:textColor="@android:color/black"
     android:textStyle="bold"
-    android:textSize="9sp"
+    android:textSize="15sp"
     android:layout_margin="15dp"
     android:text="-"
     android:background="#00000000"

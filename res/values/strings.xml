@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    
     <string name="app_name">Wi-Fi State</string>
+    <string name="app_name2x1">Wi-Fi State</string>
+    <string name="app_name2x1l">Wi-Fi State(Larger Font)</string>
 </resources>
