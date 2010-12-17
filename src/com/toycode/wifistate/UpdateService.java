@@ -50,16 +50,16 @@ import android.widget.RemoteViews;
 	 * The services to update the infomation.
 	 */
 	public class UpdateService extends Service {
+		int BUTTON_ID = R.id.Button;
 	
 		@Override
 		public void onStart(Intent intent, int startId) {
 			RemoteViews updateViews = new RemoteViews( this.getPackageName(), R.layout.state_widget);
-			updateViews.setTextViewText(R.id.InfoTextView, getNetInfoText(this));
+			updateViews.setTextViewText( BUTTON_ID, getNetInfoText(this));
 
-			// startActivity(new Intent(Settings.ACTION_WIRELESS_SETTINGS)); 
 			Intent settingIntent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
 			PendingIntent pendingIntent = PendingIntent.getActivity( this, 0, settingIntent, 0);
-			updateViews.setOnClickPendingIntent(R.id.InfoTextView, pendingIntent);				
+			updateViews.setOnClickPendingIntent( BUTTON_ID, pendingIntent);				
 			AppWidgetManager.getInstance(this).updateAppWidget( getThisName(), updateViews);
 			super.onStart(intent, startId);
 		}
@@ -96,9 +96,13 @@ import android.widget.RemoteViews;
 		/**
 		 * [Mobile] and ip address.
 		 */
-		private String getMbileNetInfoText()
+		private String getMbileNetInfoText(NetworkInfo info)
 		{
-			return "[Mobile]\n" + getInetAddressText();
+			if( info.isRoaming()){
+				return "[Roming]\n" + getInetAddressText();
+			}else{
+				return "[Mobile]\n" + getInetAddressText();
+			}
 		}
 		
 		/**
@@ -106,16 +110,10 @@ import android.widget.RemoteViews;
 		 */
 		private String getWifiNetInfoText(Context context)
 		{
-			final int DIVIDE_LENGTH = 10;
 			WifiManager wifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
 			if( wifiManager.isWifiEnabled()){
 				WifiInfo wifiInfo = wifiManager.getConnectionInfo();
 				String ssid = wifiInfo.getSSID();
-				if( ssid.length() > DIVIDE_LENGTH){
-					String head = ssid.substring( 0, DIVIDE_LENGTH);
-					String tail = ssid.substring( DIVIDE_LENGTH, ssid.length());
-					ssid = head + "\n" + tail;
- 				}
 				return ssid + "\n" +  Formatter.formatIpAddress(wifiInfo.getIpAddress());
 			}else{
 				return "WiFi\nDisabled";
@@ -144,7 +142,7 @@ import android.widget.RemoteViews;
 			String ret = "";
 			switch( info.getType()){
 			case ConnectivityManager.TYPE_MOBILE:
-				ret = getMbileNetInfoText();
+				ret = getMbileNetInfoText(info);
 				break;
 			case ConnectivityManager.TYPE_WIFI:
 				ret = getWifiNetInfoText(context);
