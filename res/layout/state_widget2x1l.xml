@@ -13,7 +13,7 @@
     android:textColor="@android:color/black"
     android:textStyle="bold"
     android:textSize="15sp"
-    android:layout_margin="15dp"
+    android:layout_margin="16dp"
     android:text="-"
     android:background="#00000000"
     />
