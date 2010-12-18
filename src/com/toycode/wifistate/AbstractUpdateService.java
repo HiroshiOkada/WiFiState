@@ -38,7 +38,7 @@ import android.widget.RemoteViews;
 /**
  * The services to update the infomation.
  */
-public abstract class UpdateService extends Service {
+public abstract class AbstractUpdateService extends Service {
 	/**
 	 * @return R.id.Button*
 	 */

@@ -18,6 +18,6 @@
   xmlns:android="http://schemas.android.com/apk/res/android" 
   android:updatePeriodMillis="0" 
   android:minHeight="72dp" 
-  android:initialLayout="@layout/state_widget2x1l" 
+  android:initialLayout="@layout/state_widgetl" 
   android:minWidth="146dp">
 </appwidget-provider>

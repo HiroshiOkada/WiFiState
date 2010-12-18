@@ -15,52 +15,32 @@
  */
 package com.toycode.wifistate;
 
-import android.appwidget.AppWidgetManager;
-import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.wifi.WifiManager;
+import android.content.ComponentName;
 
-public abstract class WiFiStateWidgetProvider extends AppWidgetProvider {
+public class WiFiStateWidgetProvider extends AbstractWiFiStateWidgetProvider {
 
-	/**
-	 * @return new Intent( context, UpdateService.class)
-	 */
-	protected abstract Intent getServiceIntent(Context context);
-
-	/**
-	 * Response to "android.appwidget.action.APPWIDGET_UPDATE"
-	 * In this widget, all updates are performed in the service.
-	 */
 	@Override
-	public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-		context.startService( getServiceIntent(context));
+	protected Intent getServiceIntent(Context context) {
+		return new Intent( context, UpdateService.class);
 	}
 
-	/**
-	 * When the widget is deleted, the service also be removed.
-	 */
-	@Override
-	public void onDisabled(Context context) {
-		context.stopService( getServiceIntent(context));		
-		super.onDisabled( context);
-	}
+	public static class UpdateService extends AbstractUpdateService {
 
-	/**
-	 * In addition to the regular update, this widget 
-	 * is respond to NETWORK_STATE_CHANGED_ACTION & CONNECTIVITY_ACTION.
-	 */
-	@Override
-	public void onReceive(Context context, Intent intent) {
-		String action = intent.getAction();
-		if( action.equals(WifiManager.NETWORK_STATE_CHANGED_ACTION) ||
-					action.equals(ConnectivityManager.CONNECTIVITY_ACTION)){
-			
-			context.startService( getServiceIntent(context));
-		}else{
-			super.onReceive( context, intent);
+		@Override
+		protected int getButtonID() {
+			return R.id.Button;
+		}
+
+		@Override
+		protected int getLayoutID() {
+			return R.layout.state_widget;
+		}
+
+		@Override
+		protected ComponentName getComponentName() {
+			return new ComponentName(this, WiFiStateWidgetProvider.class);
 		}
 	}
-	
 }

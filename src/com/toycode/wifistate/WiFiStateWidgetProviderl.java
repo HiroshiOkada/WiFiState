@@ -15,22 +15,34 @@
  */
 package com.toycode.wifistate;
 
+import android.content.Context;
+import android.content.Intent;
 import android.content.ComponentName;
 
-public class UpdateService2x1l extends UpdateService {
+public class WiFiStateWidgetProviderl extends AbstractWiFiStateWidgetProvider {
 
 	@Override
-	protected int getButtonID() {
-		return R.id.Button2x1l;
+	protected Intent getServiceIntent(Context context) {
+		return new Intent( context, UpdateServicel.class);
 	}
 
-	@Override
-	protected int getLayoutID() {
-		return R.layout.state_widget2x1l;
-	}
+	public static class UpdateServicel extends AbstractUpdateService {
 
-	@Override
-	protected ComponentName getComponentName() {
-		return new ComponentName(this, WiFiStateWidgetProvider2x1l.class);
+		@Override
+		protected int getButtonID() {
+			return R.id.Buttonl;
+		}
+
+		@Override
+		protected int getLayoutID() {
+			return R.layout.state_widgetl;
+		}
+
+		@Override
+		protected ComponentName getComponentName() {
+			return new ComponentName(this, WiFiStateWidgetProviderl.class);
+		}
+
 	}
 }
+

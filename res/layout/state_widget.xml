@@ -18,10 +18,10 @@
     android:orientation="horizontal"
     android:layout_width="160dp"
     android:layout_height="100dp"
-    android:background="@drawable/background2x1"
+    android:background="@drawable/background"
     >
 <Button  
-	android:id="@+id/Button2x1"
+	android:id="@+id/Button"
     android:layout_width="fill_parent" 
     android:layout_height="fill_parent" 
  	android:gravity="center_vertical|center_horizontal"
